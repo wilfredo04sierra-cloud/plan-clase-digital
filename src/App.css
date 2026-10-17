@@ -199,3 +199,14 @@
 .btn-desmarcar:hover {
   background-color: #334155;
 }
+
+/* Mejora asistida por IA: Elevación interactiva y accesibilidad visual */
+.actividad-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+}
+
+.actividad-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 180, 216, 0.25);
+}
