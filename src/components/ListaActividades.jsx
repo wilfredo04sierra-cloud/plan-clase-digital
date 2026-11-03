@@ -1,48 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
-// Subcomponente interactivo conectado bidireccionalmente a NocoDB
-function TarjetaActividad({ id, titulo, duracion, estadoInicial, categoria }) {
+// Subcomponente individual para cada actividad
+function TarjetaActividad({ titulo, duracion, estadoInicial, categoria }) {
+  // Toma como punto de partida lo que dictó la base de datos en NocoDB
   const [completada, setCompletada] = useState(estadoInicial);
-  const [guardando, setGuardando] = useState(false);
 
-  const alternarEstado = async () => {
-    const nuevoEstado = !completada;
-    // 1. Cambio visual inmediato en la interfaz
-    setCompletada(nuevoEstado);
-    setGuardando(true);
-
-    try {
-      const url = 'https://app.nocodb.com/api/v3/data/p572h4cqc32lcmh/md5izydx6cpv9pd/records';
-      const tokenCrudo = 'nc_pat_uT3ZBpXMtVR99BEV9CXPJrbKp5yblkVHrp4lIvTT';
-      const tokenSeguro = tokenCrudo.replace(/[^\x20-\x7E]/g, '').trim();
-
-      // 2. Petición PATCH: Escribe el cambio directamente en la base de datos
-      const respuesta = await fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json',
-          'xc-token': tokenSeguro
-        },
-        body: JSON.stringify([
-          {
-            Id: id,
-            id: id,
-            completed: nuevoEstado
-          }
-        ])
-      });
-
-      if (!respuesta.ok) {
-        throw new Error('No se pudo guardar el cambio en la base de datos');
-      }
-    } catch (error) {
-      console.error('Error al actualizar en NocoDB:', error);
-      // Si falla la red, revertimos el botón a su estado anterior
-      setCompletada(!nuevoEstado);
-    } finally {
-      setGuardando(false);
-    }
+  const alternarEstado = () => {
+    setCompletada(!completada);
   };
 
   return (
@@ -55,7 +19,6 @@ function TarjetaActividad({ id, titulo, duracion, estadoInicial, categoria }) {
           <span className={`badge-estado ${completada ? 'badge-ok' : 'badge-wait'}`}>
             {completada ? '✅ Completada' : '⏳ Pendiente'}
           </span>
-          {guardando && <small style={{ color: '#38bdf8', marginLeft: '8px' }}>Sincronizando...</small>}
         </div>
       </div>
 
@@ -63,9 +26,8 @@ function TarjetaActividad({ id, titulo, duracion, estadoInicial, categoria }) {
         type="button" 
         className={`btn-estado ${completada ? 'btn-desmarcar' : 'btn-marcar'}`}
         onClick={alternarEstado}
-        disabled={guardando}
       >
-        {guardando ? 'Guardando en nube...' : completada ? 'Marcar como pendiente' : 'Completar actividad'}
+        {completada ? 'Marcar como pendiente' : 'Completar actividad'}
       </button>
     </div>
   );
@@ -132,12 +94,10 @@ function ListaActividades() {
         <div className="grid-actividades">
           {actividades.map((act) => {
             const campos = act.fields || act;
-            const registroId = act.Id || act.id || campos.Id || campos.id;
 
             return (
               <TarjetaActividad 
-                key={registroId || Math.random()}
-                id={registroId}
+                key={act.id || act.Id || Math.random()}
                 titulo={campos.title || campos.Title || 'Sin título'}
                 duracion={campos.duration || 'Sin duración'}
                 estadoInicial={Boolean(campos.completed)}
