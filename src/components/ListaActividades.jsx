@@ -1,5 +1,39 @@
 import React, { useState, useEffect } from 'react';
 
+// Subcomponente interactivo para cada actividad individual
+function TarjetaActividad({ id, titulo, duracion, estadoInicial, categoria }) {
+  // Estado local para permitir marcar y desmarcar en pantalla
+  const [completada, setCompletada] = useState(estadoInicial);
+
+  const alternarEstado = () => {
+    setCompletada(!completada);
+  };
+
+  return (
+    <div className={`actividad-card nube-card ${completada ? 'actividad-completada' : 'actividad-pendiente'}`}>
+      <div className="actividad-cuerpo">
+        <span className="actividad-fase">{categoria}</span>
+        <h3 className={completada ? 'texto-tachado' : ''}>{titulo}</h3>
+        <p className="actividad-duracion">⏱️ Duración: {duracion}</p>
+        <div className="actividad-estado-badge">
+          <span className={`badge-estado ${completada ? 'badge-ok' : 'badge-wait'}`}>
+            {completada ? '✅ Completada' : '⏳ Pendiente'}
+          </span>
+        </div>
+      </div>
+
+      {/* Botón interactivo para alternar el estado */}
+      <button 
+        type="button" 
+        className={`btn-estado ${completada ? 'btn-desmarcar' : 'btn-marcar'}`}
+        onClick={alternarEstado}
+      >
+        {completada ? 'Marcar como pendiente' : 'Completar actividad'}
+      </button>
+    </div>
+  );
+}
+
 function ListaActividades() {
   const [actividades, setActividades] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -9,8 +43,6 @@ function ListaActividades() {
     const obtenerDatos = async () => {
       try {
         const url = 'https://app.nocodb.com/api/v3/data/p572h4cqc32lcmh/md5izydx6cpv9pd/records?pageSize=25';
-        
-        // Token limpio sin caracteres ocultos
         const tokenCrudo = 'nc_pat_uT3ZBpXMtVR99BEV9CXPJrbKp5yblkVHrp4lIvTT';
         const tokenSeguro = tokenCrudo.replace(/[^\x20-\x7E]/g, '').trim();
 
@@ -56,7 +88,8 @@ function ListaActividades() {
 
   return (
     <section className="lista-nube-container">
-      <h2>☁️ Actividades desde NocoDB</h2>
+      {/* Título formal pedagógico */}
+      <h2>Secuencia Didáctica de la Sesión</h2>
       
       {actividades.length === 0 ? (
         <p style={{textAlign: 'center', color: '#94a3b8'}}>No hay actividades registradas.</p>
@@ -65,20 +98,15 @@ function ListaActividades() {
           {actividades.map((act) => {
             const campos = act.fields || act;
             
-            const titulo = campos.title || campos.Title || 'Sin título';
-            const duracion = campos.duration || 'Sin duración';
-            const completada = campos.completed || false;
-            const categoria = campos.category || 'General';
-
             return (
-              <div key={act.id || act.Id || Math.random()} className="actividad-card nube-card">
-                <span className="actividad-fase">{categoria}</span>
-                <h3>{titulo}</h3>
-                <p>⏱️ Duración: {duracion}</p>
-                <span className={`badge-estado ${completada ? 'badge-ok' : 'badge-wait'}`}>
-                  {completada ? '✅ Finalizada' : '⏳ Pendiente'}
-                </span>
-              </div>
+              <TarjetaActividad 
+                key={act.id || act.Id || Math.random()}
+                id={act.id || act.Id}
+                titulo={campos.title || campos.Title || 'Sin título'}
+                duracion={campos.duration || 'Sin duración'}
+                estadoInicial={Boolean(campos.completed)}
+                categoria={campos.category || 'General'}
+              />
             );
           })}
         </div>
