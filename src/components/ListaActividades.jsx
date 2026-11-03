@@ -11,7 +11,7 @@ function ListaActividades() {
         const url = 'https://app.nocodb.com/api/v3/data/p572h4cqc32lcmh/md5izydx6cpv9pd/records?pageSize=25';
         
         // Token limpio sin caracteres ocultos
-        const tokenCrudo = 'nc_pat_Yanwr5n2tInxXg5vSw5qgdFl63qBdC4KkcuINPhR';
+        const tokenCrudo = 'nc_pat_uT3ZBpXMtVR99BEV9CXPJrbKp5yblkVHrp4lIvTT';
         const tokenSeguro = tokenCrudo.replace(/[^\x20-\x7E]/g, '').trim();
 
         const respuesta = await fetch(url, {
