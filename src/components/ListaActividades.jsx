@@ -3,35 +3,34 @@ import React, { useState, useEffect } from 'react';
 function ListaActividades() {
   const [actividades, setActividades] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [mensajeError, setMensajeError] = useState('');
+  const [errorWeb, setErrorWeb] = useState(null);
 
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Pega aquí tu URL COMPLETA (puedes copiarla toda desde NocoDB, incluyendo la parte final del viewId)
         const url = 'https://app.nocodb.com/api/v3/data/p572h4cqc32lcmh/md5izydx6cpv9pd/records?pageSize=25';
         
         const respuesta = await fetch(url, {
           method: 'GET',
           headers: {
             'accept': 'application/json',
-            // Pega tu xc-token real dentro de estas comillas simples
-            'xc-token': 'nc_pat_uT3ZBpXMtVR99BEV9CXPJrbKp5yblkVHrp4lIvTT'
+            'xc-token': '•	nc_pat_uT3ZBpXMtVR99BEV9CXPJrbKp5yblkVHrp4lIvTT'
           }
         });
 
         if (!respuesta.ok) {
-          // Si NocoDB rechaza la conexión, capturamos el motivo exacto
-          const errorDetalle = await respuesta.text();
-          throw new Error(`NocoDB dice: ${respuesta.status} - ${errorDetalle}`);
+          throw new Error(`El servidor rechazó la conexión (Error ${respuesta.status}).`);
         }
 
         const datos = await respuesta.json();
-        setActividades(datos.list || []); 
+        
+        // Corrección técnica clave: NocoDB v3 devuelve 'records'
+        const registros = datos.records || datos.list || [];
+        setActividades(registros); 
         
       } catch (error) {
-        console.error('Fallo técnico:', error);
-        setMensajeError(error.message); // Esto mostrará el error en tu página
+        console.error('Fallo en la petición HTTP:', error);
+        setErrorWeb(error.message);
       } finally {
         setCargando(false);
       }
@@ -40,51 +39,49 @@ function ListaActividades() {
     obtenerDatos();
   }, []);
 
-  // 1. Mostrar estado de carga
   if (cargando) {
-    return <div className="cargando-estado">⏳ Conectando a NocoDB...</div>;
+    return <div className="cargando-estado">⏳ Conectando a la base de datos en la nube...</div>;
   }
 
-  // 2. Mostrar error en pantalla si algo falla (Programación defensiva)
-  if (mensajeError) {
+  if (errorWeb) {
     return (
-      <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '8px', textAlign: 'center', margin: '1rem 0' }}>
-        <h3>🚨 Error de Conexión</h3>
-        <p>{mensajeError}</p>
-        <p><small>Verifica que tu xc-token esté bien copiado.</small></p>
+      <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '8px', margin: '2rem auto', maxWidth: '600px', textAlign: 'center' }}>
+        <h3>🚨 Hubo un problema de conexión</h3>
+        <p>{errorWeb}</p>
       </div>
     );
   }
 
-  // 3. Mostrar aviso si la base de datos está vacía
-  if (actividades.length === 0) {
-    return <div className="cargando-estado">No hay actividades. Agrega datos en NocoDB.</div>;
-  }
-
-  // 4. Renderizar las tarjetas correctamente
   return (
     <section className="lista-nube-container">
       <h2>☁️ Actividades desde NocoDB</h2>
-      <div className="grid-actividades">
-        {actividades.map((act) => {
-          // Ajuste: Le decimos a React que busque "Title" con mayúscula o minúscula
-          const titulo = act.Title || act.title || 'Sin título';
-          const duracion = act.duration || '0 min';
-          const completada = act.completed || false;
-          const categoria = act.category || 'General';
+      
+      {actividades.length === 0 ? (
+        <p style={{textAlign: 'center', color: '#94a3b8'}}>No hay actividades. Agrega datos en NocoDB.</p>
+      ) : (
+        <div className="grid-actividades">
+          {actividades.map((act) => {
+            // Extracción formal desde la gaveta 'fields' requerida en la Guía 7
+            const campos = act.fields || act;
+            
+            const titulo = campos.title || campos.Title || 'Sin título';
+            const duracion = campos.duration || 'Sin duración';
+            const completada = campos.completed || false;
+            const categoria = campos.category || 'General';
 
-          return (
-            <div key={act.Id || Math.random()} className="actividad-card nube-card">
-              <span className="actividad-fase">{categoria}</span>
-              <h3>{titulo}</h3>
-              <p>⏱️ Duración: {duracion}</p>
-              <span className={`badge-estado ${completada ? 'badge-ok' : 'badge-wait'}`}>
-                {completada ? '✅ Finalizada' : '⏳ Pendiente'}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+            return (
+              <div key={act.id || act.Id || Math.random()} className="actividad-card nube-card">
+                <span className="actividad-fase">{categoria}</span>
+                <h3>{titulo}</h3>
+                <p>⏱️ Duración: {duracion}</p>
+                <span className={`badge-estado ${completada ? 'badge-ok' : 'badge-wait'}`}>
+                  {completada ? '✅ Finalizada' : '⏳ Pendiente'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
