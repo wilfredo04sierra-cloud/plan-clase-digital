@@ -15,7 +15,7 @@ function ListaActividades() {
           headers: {
             'accept': 'application/json',
             // Tu xc-token real
-            'xc-token': 'nc_pat_Yanwr5n2tInxXg5vSw5qgdFl63qBdC4KkcuINPhR'
+            'xc-token': 'gu_a_de_aprendizaje_7-edin_wilfredo_zaca'
           }
         });
 
