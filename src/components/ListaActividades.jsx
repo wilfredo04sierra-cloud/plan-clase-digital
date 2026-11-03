@@ -10,11 +10,15 @@ function ListaActividades() {
       try {
         const url = 'https://app.nocodb.com/api/v3/data/p572h4cqc32lcmh/md5izydx6cpv9pd/records?pageSize=25';
         
+        // Token limpio sin caracteres ocultos
+        const tokenCrudo = 'nc_pat_Yanwr5n2tInxXg5vSw5qgdFl63qBdC4KkcuINPhR';
+        const tokenSeguro = tokenCrudo.replace(/[^\x20-\x7E]/g, '').trim();
+
         const respuesta = await fetch(url, {
           method: 'GET',
           headers: {
             'accept': 'application/json',
-            'xc-token': '•	nc_pat_uT3ZBpXMtVR99BEV9CXPJrbKp5yblkVHrp4lIvTT'
+            'xc-token': tokenSeguro
           }
         });
 
@@ -23,10 +27,8 @@ function ListaActividades() {
         }
 
         const datos = await respuesta.json();
-        
-        // Corrección técnica clave: NocoDB v3 devuelve 'records'
         const registros = datos.records || datos.list || [];
-        setActividades(registros); 
+        setActividades(registros);
         
       } catch (error) {
         console.error('Fallo en la petición HTTP:', error);
@@ -57,11 +59,10 @@ function ListaActividades() {
       <h2>☁️ Actividades desde NocoDB</h2>
       
       {actividades.length === 0 ? (
-        <p style={{textAlign: 'center', color: '#94a3b8'}}>No hay actividades. Agrega datos en NocoDB.</p>
+        <p style={{textAlign: 'center', color: '#94a3b8'}}>No hay actividades registradas.</p>
       ) : (
         <div className="grid-actividades">
           {actividades.map((act) => {
-            // Extracción formal desde la gaveta 'fields' requerida en la Guía 7
             const campos = act.fields || act;
             
             const titulo = campos.title || campos.Title || 'Sin título';
